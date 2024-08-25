@@ -6,9 +6,9 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-from python_template import __author__, __version__
+from askadskii import __author__, __version__
 
-project = "python-template"
+project = "askadskii"
 copyright = "2024, yu9824"
 author = __author__
 release = __version__
