@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "askadskii"
 dynamic = ["version"]
-dependencies = ["typing-extensions >= 4.0.0; python_version < '3.8'"]
+dependencies = ["typing-extensions >= 4.0.0; python_version < '3.8'", "rdkit"]
 requires-python = ">= 3.7"
 authors = [{ name = "yu9824" }]
 maintainers = [{ name = "yu9824" }]
@@ -35,7 +35,7 @@ gui = ["TkEasyGUI"]
 [project.urls]
 Homepage = "https://github.com/yu9824/askadskii"
 # Documentation = "https://readthedocs.org"
-PyPI = "https://pypi.org/project/askadskii/"
+# PyPI = "https://pypi.org/project/askadskii/"
 Source = "https://github.com/yu9824/askadskii"
 Tracker = "https://github.com/yu9824/askadskii/issues"
 Changelog = "https://github.com/yu9824/askadskii/blob/main/CHANGELOG.md"
