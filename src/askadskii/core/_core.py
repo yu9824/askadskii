@@ -14,6 +14,11 @@ SMILES: TypeAlias = str
 K_CONSTANTS = 0.681
 COL_VDW_VOLUME = "V_i"
 
+DIRPATH_DATA = Path(__file__).parent
+FILEPATH_DATA = DIRPATH_DATA / "askadskii.csv"
+if not FILEPATH_DATA.is_file():
+    FILEPATH_DATA = DIRPATH_DATA / "askadskii_hydrocarbon.csv"
+
 
 def _get_mol(
     smiles_or_mol: Union[SMILES, rdkit.Chem.rdchem.Mol],
@@ -50,7 +55,7 @@ def estimate_vdw_volume(
     )
 
     df_data = pd.read_csv(
-        Path(__file__).parent / "askadskii.csv", index_col=0
+        FILEPATH_DATA, index_col=0, delimiter=",", encoding="utf-8"
     ).dropna(axis=0, how="any")
 
     df_condition = df_data.drop(COL_VDW_VOLUME, axis=1).astype(
