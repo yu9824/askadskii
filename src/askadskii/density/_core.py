@@ -12,6 +12,12 @@ from rdkit.Chem.Descriptors import MolWt
 SMILES: TypeAlias = str
 
 K_CONSTANTS = 0.681
+UNIT_CONSTANTS = (
+    scipy.constants.Avogadro
+    / (scipy.constants.centi / scipy.constants.angstrom) ** 3
+)
+
+
 COL_VDW_VOLUME = "V_i"
 
 DIRPATH_DATA = Path(__file__).parent
@@ -56,14 +62,11 @@ def estimate_vdw_volume(
 
     df_data = pd.read_csv(
         FILEPATH_DATA, index_col=0, delimiter=",", encoding="utf-8"
-    ).dropna(axis=0, how="any")
+    )
+    df_data = df_data.loc[~df_data.loc[:, COL_VDW_VOLUME].isnull()]
 
-    df_condition = df_data.drop(COL_VDW_VOLUME, axis=1).astype(
-        {
-            _col: int
-            for _col in df_data.columns
-            if _col not in {COL_VDW_VOLUME, "Symbol"}
-        }
+    df_condition = df_data.drop([COL_VDW_VOLUME, "comment"], axis=1).fillna(
+        0.0
     )
     sr_v = df_data.loc[:, COL_VDW_VOLUME]
 
@@ -76,32 +79,41 @@ def estimate_vdw_volume(
         if symbol == "*":
             continue
 
+        if atom.GetIsAromatic():
+            symbol = symbol.lower()
+
         cnt = Counter()
-        for atom_neighbor in atom.GetNeighbors():
-            atom_neighbor: Chem.rdchem.Atom
+        for bond in atom.GetBonds():
+            bond: Chem.rdchem.Bond
+            if bond.GetBeginAtomIdx() == atom.GetIdx():
+                atom_another = bond.GetEndAtom()
+            elif bond.GetEndAtomIdx() == atom.GetIdx():
+                atom_another = bond.GetBeginAtom()
+            else:
+                raise ValueError
 
-            symbol_neighbor = atom_neighbor.GetSymbol()
+            symbol_another = atom_another.GetSymbol()
             # 繰り返し末端に隣接している場合
-            if symbol_neighbor == "*":
+            if symbol_another == "*":
                 # もう1つの繰り返し末端の隣の原子に置き換える
-                atom_neighbor = mol_with_hs.GetAtomWithIdx(
-                    map_head_tail[atom_neighbor.GetIdx()]
+                atom_another = mol_with_hs.GetAtomWithIdx(
+                    map_head_tail[atom_another.GetIdx()]
                 ).GetNeighbors()[0]  # 1つしか結合していないのは確認済み
-                symbol_neighbor = atom_neighbor.GetSymbol()
+                symbol_another = atom_another.GetSymbol()
 
-            if symbol != "H" and atom_neighbor.GetIsAromatic():
-                symbol_neighbor = symbol_neighbor.lower()
-            cnt[symbol_neighbor] += 1
-
+            if symbol != "H" and atom_another.GetIsAromatic():
+                symbol_another = symbol_another.lower()
+            cnt[symbol_another] += bond.GetBondTypeAsDouble()
         dict_info = dict(cnt)
         dict_info["Symbol"] = symbol
+        dict_info["N_Bonds"] = len(atom.GetBonds())
 
         for _key in set(df_condition.columns) - set(dict_info.keys()):
             dict_info[_key] = 0
         sr_info = pd.Series(dict_info).loc[df_condition.columns]
 
         mask = df_condition.eq(sr_info, axis=1).all(axis=1)
-        assert mask.sum() == 1
+        assert mask.sum() == 1, f"{sr_info=}"
 
         vdw_volume += sr_v[mask].item()
     return vdw_volume
@@ -111,11 +123,7 @@ def estimate_density(smiles_or_mol) -> float:
     mol = _get_mol(smiles_or_mol)
     vdw_volume = estimate_vdw_volume(mol)
 
-    return (K_CONSTANTS * MolWt(mol)) / (
-        scipy.constants.Avogadro
-        * vdw_volume
-        * (scipy.constants.angstrom / scipy.constants.centi) ** 3
-    )
+    return (K_CONSTANTS * MolWt(mol)) / (vdw_volume * UNIT_CONSTANTS)
 
 
 def _get_head_tail(
@@ -143,8 +151,11 @@ def _get_head_tail(
 
 
 if __name__ == "__main__":
-    print(estimate_density("[1*]CC(C[2*])(C[2*])C[1*]"))
-    print(estimate_density("[*]CC[*]"))
-    print(estimate_density("CCC"))
+    print(estimate_vdw_volume("*CC(C)=CC*") * UNIT_CONSTANTS)
+    print(estimate_density("*CC(C)=CC*"))
 
-    # _get_head_tail("[*]CC[*]")
+    print(estimate_vdw_volume("*CC(C#N)*") * UNIT_CONSTANTS)
+    print(estimate_density("*CC(C#N)*"))
+
+    print(estimate_vdw_volume("*CC(c1ccccc1)*") * UNIT_CONSTANTS)
+    print(estimate_density("*CC(c1ccccc1)*"))
