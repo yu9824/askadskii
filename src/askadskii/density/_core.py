@@ -1,7 +1,13 @@
+import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 from types import MappingProxyType
 from typing import TypeAlias, Union
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 import pandas as pd
 import rdkit.Chem
@@ -48,6 +54,7 @@ def _get_mol(
 
 def estimate_vdw_volume(
     smiles_or_mol: Union[SMILES, rdkit.Chem.rdchem.Mol],
+    unit: Literal["cm^3/mol", "angstrom^3"] = "cm^3/mol",
 ) -> float:
     mol = _get_mol(smiles_or_mol)
     map_head_tail = _get_head_tail(mol)
@@ -116,14 +123,20 @@ def estimate_vdw_volume(
         assert mask.sum() == 1, f"{sr_info=}"
 
         vdw_volume += sr_v[mask].item()
+    if unit == "cm^3/mol":
+        vdw_volume *= UNIT_CONSTANTS
+    elif unit == "angstrom^3":
+        pass
+    else:
+        raise ValueError("'cm^3/mol' or 'angstrom^3'")
     return vdw_volume
 
 
 def estimate_density(smiles_or_mol) -> float:
     mol = _get_mol(smiles_or_mol)
-    vdw_volume = estimate_vdw_volume(mol)
+    vdw_volume = estimate_vdw_volume(mol, unit="cm^3/mol")
 
-    return (K_CONSTANTS * MolWt(mol)) / (vdw_volume * UNIT_CONSTANTS)
+    return (K_CONSTANTS * MolWt(mol)) / vdw_volume
 
 
 def _get_head_tail(
@@ -151,11 +164,11 @@ def _get_head_tail(
 
 
 if __name__ == "__main__":
-    print(estimate_vdw_volume("*CC(C)=CC*") * UNIT_CONSTANTS)
+    print(estimate_vdw_volume("*CC(C)=CC*"))
     print(estimate_density("*CC(C)=CC*"))
 
-    print(estimate_vdw_volume("*CC(C#N)*") * UNIT_CONSTANTS)
+    print(estimate_vdw_volume("*CC(C#N)*"))
     print(estimate_density("*CC(C#N)*"))
 
-    print(estimate_vdw_volume("*CC(c1ccccc1)*") * UNIT_CONSTANTS)
+    print(estimate_vdw_volume("*CC(c1ccccc1)*"))
     print(estimate_density("*CC(c1ccccc1)*"))
