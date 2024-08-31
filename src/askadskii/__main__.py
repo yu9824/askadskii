@@ -1,5 +1,6 @@
 import argparse
 import sys
+from pathlib import Path
 from typing import Optional
 
 if sys.version_info >= (3, 9):
@@ -7,7 +8,8 @@ if sys.version_info >= (3, 9):
 else:
     from typing import Sequence
 
-from . import __version__
+from askadskii import __version__
+from askadskii.density import estimate_density, estimate_vdw_volume
 
 __all__ = ["main"]
 
@@ -21,11 +23,69 @@ def main(cli_args: Sequence[str], prog: Optional[str] = None) -> None:
         help="show current version",
         version=f"%(prog)s: {__version__}",
     )
-    parser.parse_args(cli_args)
+
+    subparsers = parser.add_subparsers()
+    parser_density = subparsers.add_parser(
+        "density", help="see 'density --help'"
+    )
+    parser_vdw_volume = subparsers.add_parser(
+        "vdw-volume",
+        help="see 'vdw-volume --help'",
+        description="Unit is 'cm^3/mol'",
+    )
+    parser_density.set_defaults(func=estimate_density)
+    parser_vdw_volume.set_defaults(func=estimate_vdw_volume)
+    for _subparser in (parser_density, parser_vdw_volume):
+        _subparser.add_argument("smiles", type=str, nargs="*", help="smiles")
+        _subparser.add_argument(
+            "-i",
+            "--input-file",
+            type=Path,
+            help="A filepath containing a list of SMILES separated by newlines",
+        )
+        _subparser.add_argument(
+            "-d",
+            "--decimal",
+            type=int,
+            default=3,
+            help="the number of decimal places to display, by default 3",
+        )
+        _subparser.add_argument(
+            "-o", "--output-file", type=Path, help="filepath output"
+        )
+    _common(parser.parse_args(cli_args))
 
 
 def entrypoint() -> None:
     main(sys.argv[1:])
+
+
+def _common(args: argparse.Namespace) -> None:
+    list_smiles: "list[str]" = args.smiles
+    filepath_input: Optional[Path] = args.input_file
+    filepath_output: Optional[Path] = args.output_file
+
+    if not (bool(list_smiles) or bool(filepath_input)):
+        raise ValueError("one of them should be specified.")
+    elif bool(list_smiles) and bool(filepath_input):
+        raise ValueError("Either of them should be specified.")
+
+    elif filepath_input:
+        with open(filepath_input, mode="r", encoding="utf-8") as f:
+            tup_smiles = tuple(f.read().split())
+    else:
+        tup_smiles = tuple(list_smiles)
+
+    tup_values = tuple(
+        "{0:.{1}f}\n".format(args.func(smiles), args.decimal)
+        for smiles in tup_smiles
+    )
+
+    if filepath_output:
+        with open(filepath_output, mode="w", encoding="utf-8") as f:
+            f.writelines(tup_values)
+    else:
+        sys.stdout.writelines(tup_values)
 
 
 if __name__ == "__main__":
