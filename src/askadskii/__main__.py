@@ -1,5 +1,7 @@
 import argparse
+import importlib
 import sys
+from logging import DEBUG, getLogger
 from pathlib import Path
 from typing import Optional
 
@@ -7,7 +9,7 @@ if sys.version_info >= (3, 9):
     from collections.abc import Sequence
 else:
     from typing import Sequence
-from logging import DEBUG, getLogger
+
 
 from askadskii import __version__
 from askadskii.density import estimate_density, estimate_vdw_volume
@@ -60,8 +62,12 @@ def main(cli_args: Sequence[str], prog: Optional[str] = None) -> None:
             "--debug", action="store_true", help="debug mode"
         )
         _subparser.add_argument(
+            "--deprecated", action="store_true", help="use deprecated method"
+        )
+        _subparser.add_argument(
             "-o", "--output-file", type=Path, help="filepath output"
         )
+
     _common(parser.parse_args(cli_args))
 
 
@@ -73,6 +79,12 @@ def _common(args: argparse.Namespace) -> None:
     list_smiles: "list[str]" = args.smiles
     filepath_input: Optional[Path] = args.input_file
     filepath_output: Optional[Path] = args.output_file
+
+    if args.deprecated:
+        _deprecated_module = importlib.import_module(
+            f"{_get_root_logger_name()}.density._deprecated"
+        )
+        args.func = getattr(_deprecated_module, args.func.__name__)
 
     if args.debug:
         root_logger.setLevel(DEBUG)
