@@ -15,6 +15,8 @@ import scipy.constants
 from rdkit import Chem
 from rdkit.Chem.Descriptors import MolWt
 
+from askadskii.logging import DEBUG, get_child_logger
+
 SMILES: TypeAlias = str
 
 K_CONSTANTS = 0.681
@@ -22,6 +24,8 @@ UNIT_CONSTANTS = (
     scipy.constants.Avogadro
     / (scipy.constants.centi / scipy.constants.angstrom) ** 3
 )
+
+_logger = get_child_logger(__name__)
 
 
 COL_VDW_VOLUME = "V_i"
@@ -103,7 +107,7 @@ def estimate_vdw_volume(
             # 繰り返し末端に隣接している場合
             if symbol_another == "*":
                 # もう1つの繰り返し末端の隣の原子に置き換える
-                atom_another = mol_with_hs.GetAtomWithIdx(
+                atom_another: Chem.rdchem.Atom = mol_with_hs.GetAtomWithIdx(
                     map_head_tail[atom_another.GetIdx()]
                 ).GetNeighbors()[0]  # 1つしか結合していないのは確認済み
                 symbol_another = atom_another.GetSymbol()
@@ -122,7 +126,10 @@ def estimate_vdw_volume(
         mask = df_condition.eq(sr_info, axis=1).all(axis=1)
         assert mask.sum() == 1, f"{sr_info=}"
 
+        _logger.debug(pd.concat((sr_v[mask], sr_info[sr_info != 0])).to_dict())
+
         vdw_volume += sr_v[mask].item()
+
     if unit == "cm^3/mol":
         vdw_volume *= UNIT_CONSTANTS
     elif unit == "angstrom^3":
@@ -132,7 +139,7 @@ def estimate_vdw_volume(
     return vdw_volume
 
 
-def estimate_density(smiles_or_mol) -> float:
+def estimate_density(smiles_or_mol: Union[SMILES, Chem.rdchem.Mol]) -> float:
     mol = _get_mol(smiles_or_mol)
     vdw_volume = estimate_vdw_volume(mol, unit="cm^3/mol")
 
@@ -164,11 +171,26 @@ def _get_head_tail(
 
 
 if __name__ == "__main__":
-    print(estimate_vdw_volume("*CC(C)=CC*"))
-    print(estimate_density("*CC(C)=CC*"))
+    _logger.setLevel(DEBUG)
 
-    print(estimate_vdw_volume("*CC(C#N)*"))
-    print(estimate_density("*CC(C#N)*"))
+    print(UNIT_CONSTANTS)
 
-    print(estimate_vdw_volume("*CC(c1ccccc1)*"))
-    print(estimate_density("*CC(c1ccccc1)*"))
+    # for _smiles in ("*CC(*)(C)C", "*CC(C#N)*", "*CC(c1ccccc1)*"):
+    for _smiles in (
+        "*CC(*)(C)C",
+        # "*CC(C#N)*",
+        # "*CC(*)(C)C(=O)OC",
+        # "*CC(*)(C)C(=O)OCC",
+        # "*CC(c1ccccc1)*",
+        # "*CC(c1ccccc1)(C)*",
+        # "C(*)C(*)(C)C(=O)OC",
+        # "CC(*)C(*)(C)C(=O)OC",
+        # "*CC*",
+        # "*NCCCCCCNC(=O)CCCCC(=O)*",
+        # "[1*]SCC(CS[2*])(CSC(=S)Nc1ccc(NC([2*])=S)cc1)CSC(=S)Nc2ccc(NC([1*])=S)cc2",
+        "*c9ccc(C8(c5ccc(n4c(=O)c3ccc(c2ccc1c(=O)n(*)c(=O)c1c2)cc3c4=O)cc5)c6ccccc6c7ccccc78)cc9",
+    ):
+        _logger.debug(_smiles)
+        print(estimate_vdw_volume(_smiles, unit="cm^3/mol"))
+        # print(estimate_vdw_volume(_smiles, unit="angstrom^3"))
+        # print(estimate_density(_smiles))
