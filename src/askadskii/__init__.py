@@ -6,5 +6,3 @@ __author__ = "yu9824"
 __copyright__ = "Copyright © 2024 yu9824"
 
 __all__ = ()
-
-import askadskii.utils.dataset._decrypt  # noqa: F401
