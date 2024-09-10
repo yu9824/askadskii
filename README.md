@@ -23,3 +23,8 @@ options:
 ## Install
 
 You can install with `pip` .
+
+## References
+
+- Askadskiĭ, A. A. (2003). Computational materials science of polymers. Cambridge Int Science Publishing.
+- Askadskiĭ, A. A. (1996). Physical properties of polymers (Vol. 2). CRC Press.
