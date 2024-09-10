@@ -1,4 +1,15 @@
-"""My own python package's template."""
+"""Askadskii's method
+
+Usage
+-----
+
+bash
+^^^^
+
+.. code-block:: bash
+    askadskii density "*CC*"
+
+"""
 
 __version__ = "0.1.0"
 __license__ = "MIT"

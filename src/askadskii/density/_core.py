@@ -63,6 +63,26 @@ def estimate_vdw_volume(
     smiles_or_mol: Union[SMILES, rdkit.Chem.rdchem.Mol],
     unit: Literal["cm^3/mol", "angstrom^3"] = "cm^3/mol",
 ) -> float:
+    """estimate van der waals' volume of polymers
+
+    Parameters
+    ----------
+    smiles_or_mol : Union[SMILES, rdkit.Chem.rdchem.Mol]
+        SMILES or rdkit.Chem.rdchem.Mol
+    unit : Literal[&quot;cm, optional
+        unit, by default "cm^3/mol"
+
+    Returns
+    -------
+    float
+        estimated van der waals' volume
+
+    Examples
+    --------
+    >>> from askadskii.density import estimate_vdw_volume
+    >>> estimate_vdw_volume("*CC*")
+
+    """
     mol = _get_mol(smiles_or_mol)
     map_head_tail = _get_head_tail(mol)
     mol_with_hs = Chem.AddHs(mol)
@@ -156,6 +176,23 @@ def estimate_vdw_volume(
 
 
 def estimate_density(smiles_or_mol: Union[SMILES, Chem.rdchem.Mol]) -> float:
+    """estimate density of polymers
+
+    Parameters
+    ----------
+    smiles_or_mol : Union[SMILES, Chem.rdchem.Mol]
+        SMILES or rdkit.Chem.rdchem.Mol
+
+    Returns
+    -------
+    float
+        estimated polymer's density
+
+    Examples
+    --------
+    >>> from askadskii.density import estimate_density
+    >>> estimate_density("*CC*")
+    """
     mol = _get_mol(smiles_or_mol)
     vdw_volume = estimate_vdw_volume(mol, unit="cm^3/mol")
 
