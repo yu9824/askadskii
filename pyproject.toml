@@ -11,6 +11,7 @@ dependencies = [
     "rdkit",
     "scipy",
     "pandas",
+    "cryptography",
 ]
 requires-python = ">= 3.7"
 authors = [{ name = "yu9824" }]
@@ -33,7 +34,7 @@ classifiers = [
 
 [project.optional-dependencies]
 test = ["pytest"]
-dev = ["twine", "wheel", "build"]
+dev = ["build"]
 docs = ["sphinx", "sphinx_rtd_theme", "sphinx-markdown-tables", "recommonmark"]
 gui = ["TkEasyGUI"]
 
