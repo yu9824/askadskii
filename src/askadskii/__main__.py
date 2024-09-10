@@ -7,11 +7,15 @@ if sys.version_info >= (3, 9):
     from collections.abc import Sequence
 else:
     from typing import Sequence
+from logging import DEBUG, getLogger
 
 from askadskii import __version__
 from askadskii.density import estimate_density, estimate_vdw_volume
+from askadskii.logging._logging import _get_root_logger_name
 
-__all__ = ["main"]
+__all__ = ("main",)
+
+root_logger = getLogger(_get_root_logger_name())
 
 
 def main(cli_args: Sequence[str], prog: Optional[str] = None) -> None:
@@ -36,7 +40,9 @@ def main(cli_args: Sequence[str], prog: Optional[str] = None) -> None:
     parser_density.set_defaults(func=estimate_density)
     parser_vdw_volume.set_defaults(func=estimate_vdw_volume)
     for _subparser in (parser_density, parser_vdw_volume):
-        _subparser.add_argument("smiles", type=str, nargs="*", help="smiles")
+        _subparser.add_argument(
+            "smiles", type=str, nargs="*", help="smiles", metavar="SMILES"
+        )
         _subparser.add_argument(
             "-i",
             "--input-file",
@@ -49,6 +55,9 @@ def main(cli_args: Sequence[str], prog: Optional[str] = None) -> None:
             type=int,
             default=3,
             help="the number of decimal places to display, by default 3",
+        )
+        _subparser.add_argument(
+            "--debug", action="store_true", help="debug mode"
         )
         _subparser.add_argument(
             "-o", "--output-file", type=Path, help="filepath output"
@@ -65,14 +74,19 @@ def _common(args: argparse.Namespace) -> None:
     filepath_input: Optional[Path] = args.input_file
     filepath_output: Optional[Path] = args.output_file
 
+    if args.debug:
+        root_logger.setLevel(DEBUG)
+
     if not (bool(list_smiles) or bool(filepath_input)):
         raise ValueError("one of them should be specified.")
+
     elif bool(list_smiles) and bool(filepath_input):
         raise ValueError("Either of them should be specified.")
 
     elif filepath_input:
         with open(filepath_input, mode="r", encoding="utf-8") as f:
             tup_smiles = tuple(f.read().split())
+
     else:
         tup_smiles = tuple(list_smiles)
 
