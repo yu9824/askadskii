@@ -1,11 +1,13 @@
 # custom
 docs/
-askadskii.csv
-*askadskii.xlsx
+*.csv
+*.numbers
+*.xlsx
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+notebooks/*
 
 # C extensions
 *.so
