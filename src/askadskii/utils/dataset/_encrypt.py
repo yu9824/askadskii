@@ -27,7 +27,12 @@ def __encrypt(key: Optional[Union[bytes, str]] = None) -> bytes:
 
         with open(filepath_csv, mode="rb") as f:
             _content = f.read()
-        contents_all += bytes(filepath_csv) + KEY_SPLIT + _content + KEY_SPLIT
+        contents_all += (
+            bytes(filepath_csv.relative_to(DIRPATH_ROOT))
+            + KEY_SPLIT
+            + _content
+            + KEY_SPLIT
+        )
 
     cipher_suite = Fernet(key)
     contents_all_crypted = cipher_suite.encrypt(contents_all)
