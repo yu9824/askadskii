@@ -6,14 +6,18 @@ Usage
 bash
 ^^^^
 .. code-block:: bash
+
     askadskii density "*CC*"
+
 
 Python
 ^^^^^^
 .. code-block:: python
+
     from askadskii.density import estimate_density
 
     estimate_density("*CC*")
+
 
 References
 ----------

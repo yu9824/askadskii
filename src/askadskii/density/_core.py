@@ -69,7 +69,7 @@ def estimate_vdw_volume(
     ----------
     smiles_or_mol : Union[SMILES, rdkit.Chem.rdchem.Mol]
         SMILES or rdkit.Chem.rdchem.Mol
-    unit : Literal[&quot;cm, optional
+    unit : Literal["cm^3/mol", "angstrom^3"], optional
         unit, by default "cm^3/mol"
 
     Returns

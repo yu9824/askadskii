@@ -7,6 +7,7 @@ bash
 ^^^^
 
 .. code-block:: bash
+
     askadskii density "*CC*"
 
 """
