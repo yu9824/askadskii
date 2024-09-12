@@ -61,6 +61,9 @@ version = { attr = "askadskii.__version__" }
 [tool.setuptools.packages.find]
 where = ["src/"]
 
+[tool.setuptools.package-data]
+"*" = [".dataset"]
+
 [tool.ruff]
 line-length = 79
 indent-width = 4
