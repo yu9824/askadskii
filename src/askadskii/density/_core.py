@@ -123,7 +123,7 @@ def estimate_vdw_volume(
         if atom.GetIsAromatic():
             symbol = symbol.lower()
 
-        radii = map_radii[symbol.upper()]
+        radii = map_radii[symbol.capitalize()]
         _vdw_volume_i = (4 / 3) * math.pi * (radii**3)
 
         for bond in atom.GetBonds():
@@ -146,7 +146,7 @@ def estimate_vdw_volume(
 
             if symbol != "H" and atom_other.GetIsAromatic():
                 symbol_other = symbol_other.lower()
-            radii_other = map_radii[symbol_other.upper()]
+            radii_other = map_radii[symbol_other.capitalize()]
 
             _key_bond = _get_key_distance(
                 symbol, symbol_other, bond.GetBondTypeAsDouble()
@@ -227,9 +227,9 @@ def _get_key_distance(
     symbol1: str, symbol2: str, bondtype: float
 ) -> tuple[str, str, str]:
     if symbol1 == "H":
-        symbol2 = symbol2.upper()
+        symbol2 = symbol2.capitalize()
     elif symbol2 == "H":
-        symbol1 = symbol1.upper()
+        symbol1 = symbol1.capitalize()
 
     return tuple(sorted((symbol1, symbol2)) + ["{0:.1f}".format(bondtype)])
 
