@@ -15,7 +15,7 @@ DIRPATH_ROOT = Path(
 
 
 def __decrypt(key: Union[str, bytes]) -> None:
-    with open(Path(__file__).parent / "dataset", mode="rb") as f:
+    with open(Path(__file__).parent / ".dataset", mode="rb") as f:
         contents_raw = f.read()
 
     cipher_suite = Fernet(key)

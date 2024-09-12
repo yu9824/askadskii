@@ -37,7 +37,7 @@ def __encrypt(key: Optional[Union[bytes, str]] = None) -> bytes:
     cipher_suite = Fernet(key)
     contents_all_crypted = cipher_suite.encrypt(contents_all)
 
-    with open(Path(__file__).parent / "dataset", mode="wb") as f:
+    with open(Path(__file__).parent / ".dataset", mode="wb") as f:
         f.write(contents_all_crypted)
 
     _logger.debug("key: '{}'".format(key.decode("utf-8")))
