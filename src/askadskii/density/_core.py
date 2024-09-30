@@ -34,6 +34,7 @@ COL_VDW_VOLUME = "V_i"
 DIRPATH_DATA = Path(__file__).parent
 FILEPATH_DISTANCE = DIRPATH_DATA / "distance.csv"
 FILEPATH_RADII = DIRPATH_DATA / "radii.csv"
+FILEPATH_COVALENT = DIRPATH_DATA / "radius-covalent.csv"
 # FILEPATH_DATA = DIRPATH_DATA / "askadskii.csv"
 # if not FILEPATH_DATA.is_file():
 #     FILEPATH_DATA = DIRPATH_DATA / "askadskii_hydrocarbon.csv"
@@ -62,6 +63,7 @@ def _get_mol(
 def estimate_vdw_volume(
     smiles_or_mol: Union[SMILES, rdkit.Chem.rdchem.Mol],
     unit: Literal["cm^3/mol", "angstrom^3"] = "cm^3/mol",
+    use_estimated_params: bool = False,
 ) -> float:
     """estimate van der waals' volume of polymers
 
@@ -71,6 +73,8 @@ def estimate_vdw_volume(
         SMILES or rdkit.Chem.rdchem.Mol
     unit : Literal["cm^3/mol", "angstrom^3"], optional
         unit, by default "cm^3/mol"
+    use_estimated_params : bool, optional
+        use estimated covalent bond dinstance or not, by default False
 
     Returns
     -------
@@ -95,7 +99,7 @@ def estimate_vdw_volume(
     )
 
     # 結合距離情報
-    df_distance = pd.read_csv(FILEPATH_DISTANCE, encoding="utf-8")
+    df_distance = pd.read_csv(FILEPATH_DISTANCE, encoding="utf-8", comment="#")
     df_distance.dropna(axis=0, how="all", inplace=True)
     map_distance = MappingProxyType(
         {
@@ -108,8 +112,22 @@ def estimate_vdw_volume(
         }
     )
 
-    df_radii = pd.read_csv(FILEPATH_RADII, index_col=0, encoding="utf-8")
+    df_radii = pd.read_csv(
+        FILEPATH_RADII, index_col=0, encoding="utf-8", comment="#"
+    )
     map_radii = MappingProxyType(df_radii.iloc[:, 0].to_dict())
+
+    #
+    if use_estimated_params:
+        df_radii_coval = pd.read_csv(
+            FILEPATH_COVALENT, index_col=0, encoding="utf-8", comment="#"
+        )
+        df_radii_coval.loc[:, "1.5"] = (
+            df_radii_coval.loc[:, ["1.0", "2.0"]].mean(axis=1).rename("1.5")
+        )
+        map_radii_coval = MappingProxyType(
+            df_radii_coval.to_dict(orient="index")
+        )
 
     vdw_volume = 0.0
     for atom in mol_with_hs.GetAtoms():
@@ -151,7 +169,21 @@ def estimate_vdw_volume(
             _key_bond = _get_key_distance(
                 symbol, symbol_other, bond.GetBondTypeAsDouble()
             )
-            distance = map_distance[_key_bond]
+            if _key_bond in set(map_distance.keys()):
+                distance = map_distance[_key_bond]
+            elif use_estimated_params:
+                _logger.warning(f"{_key_bond} is estiamted.")
+                distance = sum(
+                    map_radii_coval[_symbol][
+                        f"{bond.GetBondTypeAsDouble():.1f}"
+                    ]
+                    for _symbol in (symbol, symbol_other)
+                )
+            else:
+                raise KeyError(
+                    f"{_key_bond} is not defined; check 'use_estimated_params' mode."
+                )
+
             h_i = radii - (radii**2 + distance**2 - radii_other**2) / (
                 2 * distance
             )
@@ -175,13 +207,18 @@ def estimate_vdw_volume(
     return vdw_volume
 
 
-def estimate_density(smiles_or_mol: Union[SMILES, Chem.rdchem.Mol]) -> float:
+def estimate_density(
+    smiles_or_mol: Union[SMILES, Chem.rdchem.Mol],
+    use_estimated_params: bool = False,
+) -> float:
     """estimate density of polymers
 
     Parameters
     ----------
     smiles_or_mol : Union[SMILES, Chem.rdchem.Mol]
         SMILES or rdkit.Chem.rdchem.Mol
+    use_estimated_params : bool, optional
+        use estimated covalent bond dinstance or not, by default False
 
     Returns
     -------
@@ -194,7 +231,9 @@ def estimate_density(smiles_or_mol: Union[SMILES, Chem.rdchem.Mol]) -> float:
     >>> estimate_density("*CC*")
     """
     mol = _get_mol(smiles_or_mol)
-    vdw_volume = estimate_vdw_volume(mol, unit="cm^3/mol")
+    vdw_volume = estimate_vdw_volume(
+        mol, unit="cm^3/mol", use_estimated_params=use_estimated_params
+    )
 
     return (K_CONSTANTS * MolWt(mol)) / vdw_volume
 

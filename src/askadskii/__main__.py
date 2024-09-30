@@ -67,6 +67,12 @@ def main(cli_args: Sequence[str], prog: Optional[str] = None) -> None:
         _subparser.add_argument(
             "-o", "--output-file", type=Path, help="filepath output"
         )
+        _subparser.add_argument(
+            "-e",
+            "--use-estimated-params",
+            action="store_true",
+            help="use estimated covalent bond dinstance",
+        )
 
     _common(parser.parse_args(cli_args))
 
@@ -84,7 +90,9 @@ def _common(args: argparse.Namespace) -> None:
         _deprecated_module = importlib.import_module(
             f"{_get_root_logger_name()}.density._deprecated"
         )
-        args.func = getattr(_deprecated_module, args.func.__name__)
+        func = getattr(_deprecated_module, args.func.__name__)
+    else:
+        func = args.func
 
     if args.debug:
         root_logger.setLevel(DEBUG)
@@ -103,7 +111,10 @@ def _common(args: argparse.Namespace) -> None:
         tup_smiles = tuple(list_smiles)
 
     tup_values = tuple(
-        "{0:.{1}f}\n".format(args.func(smiles), args.decimal)
+        "{0:.{1}f}\n".format(
+            func(smiles, use_estimated_params=args.use_estimated_params),
+            args.decimal,
+        )
         for smiles in tup_smiles
     )
 
