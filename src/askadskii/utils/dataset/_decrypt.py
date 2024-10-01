@@ -55,3 +55,17 @@ def decrypt_manager(key: Optional[Union[str, bytes]] = None):
     finally:
         for _filepath_dataset in glob.glob(str(DIRPATH_ROOT / "**" / "*.csv")):
             os.remove(_filepath_dataset)
+
+
+if __name__ == "__main__":
+    if FILEPATH_ENV.is_file():
+        load_dotenv(FILEPATH_ENV)
+
+    if KEY_ASKADSKII in set(os.environ):
+        __decrypt(os.environ[KEY_ASKADSKII])
+    else:
+        _activation_key = input("activation key: ")
+        __decrypt(_activation_key)
+
+        with open(FILEPATH_ENV, mode="w", encoding="utf-8") as f:
+            f.write(f"{KEY_ASKADSKII}={_activation_key}")

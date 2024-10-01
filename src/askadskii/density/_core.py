@@ -17,6 +17,7 @@ from rdkit import Chem
 from rdkit.Chem.Descriptors import MolWt
 
 from askadskii.logging import DEBUG, get_child_logger
+from askadskii.utils.dataset import decrypt_manager
 
 SMILES: TypeAlias = str
 
@@ -98,36 +99,42 @@ def estimate_vdw_volume(
         if _atom.GetSymbol() != "H"
     )
 
-    # 結合距離情報
-    df_distance = pd.read_csv(FILEPATH_DISTANCE, encoding="utf-8", comment="#")
-    df_distance.dropna(axis=0, how="all", inplace=True)
-    map_distance = MappingProxyType(
-        {
-            _get_key_distance(
-                _sr_row["Atom_1"],
-                _sr_row["Atom_2"],
-                _sr_row["BondType"],
-            ): _sr_row["Distance"]
-            for _, _sr_row in df_distance.iterrows()
-        }
-    )
+    with decrypt_manager():
+        # 結合距離情報
+        df_distance = pd.read_csv(
+            FILEPATH_DISTANCE, encoding="utf-8", comment="#"
+        )
+        df_distance.dropna(axis=0, how="all", inplace=True)
+        map_distance = MappingProxyType(
+            {
+                _get_key_distance(
+                    _sr_row["Atom_1"],
+                    _sr_row["Atom_2"],
+                    _sr_row["BondType"],
+                ): _sr_row["Distance"]
+                for _, _sr_row in df_distance.iterrows()
+            }
+        )
 
-    df_radii = pd.read_csv(
-        FILEPATH_RADII, index_col=0, encoding="utf-8", comment="#"
-    )
-    map_radii = MappingProxyType(df_radii.iloc[:, 0].to_dict())
+        # 半径情報
+        df_radii = pd.read_csv(
+            FILEPATH_RADII, index_col=0, encoding="utf-8", comment="#"
+        )
+        map_radii = MappingProxyType(df_radii.iloc[:, 0].to_dict())
 
-    #
-    if use_estimated_params:
-        df_radii_coval = pd.read_csv(
-            FILEPATH_COVALENT, index_col=0, encoding="utf-8", comment="#"
-        )
-        df_radii_coval.loc[:, "1.5"] = (
-            df_radii_coval.loc[:, ["1.0", "2.0"]].mean(axis=1).rename("1.5")
-        )
-        map_radii_coval = MappingProxyType(
-            df_radii_coval.to_dict(orient="index")
-        )
+        # 結合距離が定義されていない場合
+        if use_estimated_params:
+            df_radii_coval = pd.read_csv(
+                FILEPATH_COVALENT, index_col=0, encoding="utf-8", comment="#"
+            )
+            df_radii_coval.loc[:, "1.5"] = (
+                df_radii_coval.loc[:, ["1.0", "2.0"]]
+                .mean(axis=1)
+                .rename("1.5")
+            )
+            map_radii_coval = MappingProxyType(
+                df_radii_coval.to_dict(orient="index")
+            )
 
     vdw_volume = 0.0
     for atom in mol_with_hs.GetAtoms():
