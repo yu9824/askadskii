@@ -12,6 +12,7 @@ dependencies = [
     "scipy",
     "pandas",
     "cryptography",
+    "python-dotenv",
 ]
 requires-python = ">= 3.7"
 authors = [{ name = "yu9824" }]
