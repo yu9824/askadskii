@@ -27,7 +27,7 @@ jobs:
           sphinx-apidoc -f -o ./docs_src ./src/askadskii --module-first
       - name: Sphinx build
         env:
-          KEY_ASKADSKII: ${{ secrets.KEY_ASKADSKII_0_1_2 }}
+          KEY_ASKADSKII: ${{ secrets.KEY_ASKADSKII_0_1_4 }}
         run: |
           sphinx-build -b html ./docs_src ./docs
       - name: Deploy to GitHub Pages

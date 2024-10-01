@@ -32,6 +32,6 @@ jobs:
         pip install -e .[test]
     - name: Test with pytest
       env:
-        KEY_ASKADSKII: ${{ secrets.KEY_ASKADSKII_0_1_3 }}
+        KEY_ASKADSKII: ${{ secrets.KEY_ASKADSKII_0_1_4 }}
       run: |
         pytest
