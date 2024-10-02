@@ -1,9 +1,11 @@
 # askadskii
 
+Askadskii's atomic group contribution method.
+
 ## Usage
 
 ```plaintext
-usage: askadskii density [-h] [-i INPUT_FILE] [-d DECIMAL] [--debug] [--deprecated] [-o OUTPUT_FILE] [SMILES ...]
+usage: askadskii density [-h] [-i INPUT_FILE] [-d DECIMAL] [--debug] [--deprecated] [-o OUTPUT_FILE] [-e] [SMILES ...]
 
 positional arguments:
   SMILES                smiles
@@ -18,11 +20,18 @@ options:
   --deprecated          use deprecated method
   -o OUTPUT_FILE, --output-file OUTPUT_FILE
                         filepath output
+  -e, --use-estimated-params
+                        use estimated covalent bond dinstance
 ```
 
 ## Install
 
-You can install with `pip` .
+You can install with `pip` ;
+
+```bash
+pip install git+https://github.com/yu9824/askadskii.git
+
+```
 
 ## References
 

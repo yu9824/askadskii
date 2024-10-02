@@ -1,16 +1,4 @@
-"""Askadskii's method
-
-Usage
------
-
-bash
-^^^^
-
-.. code-block:: bash
-
-    askadskii density "*CC*"
-
-"""
+""""""
 
 __version__ = "0.1.5"
 __license__ = "MIT"

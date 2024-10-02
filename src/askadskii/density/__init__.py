@@ -1,4 +1,4 @@
-"""estimate density
+"""
 
 Usage
 -----
@@ -24,6 +24,7 @@ References
 
 - Askadskiĭ, A. A. (2003). Computational materials science of polymers. Cambridge Int Science Publishing.
 - Askadskiĭ, A. A. (1996). Physical properties of polymers (Vol. 2). CRC Press.
+
 """
 
 from ._core import estimate_density, estimate_vdw_volume
