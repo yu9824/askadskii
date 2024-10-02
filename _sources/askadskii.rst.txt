@@ -1,0 +1,17 @@
+askadskii package
+=================
+
+.. automodule:: askadskii
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   askadskii.density
+   askadskii.logging
+   askadskii.utils

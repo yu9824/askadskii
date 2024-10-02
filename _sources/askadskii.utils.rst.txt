@@ -1,0 +1,15 @@
+askadskii.utils package
+=======================
+
+.. automodule:: askadskii.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   askadskii.utils.dataset

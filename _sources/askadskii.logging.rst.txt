@@ -1,0 +1,7 @@
+askadskii.logging package
+=========================
+
+.. automodule:: askadskii.logging
+   :members:
+   :undoc-members:
+   :show-inheritance:

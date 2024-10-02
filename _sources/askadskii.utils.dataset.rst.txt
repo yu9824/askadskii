@@ -1,0 +1,7 @@
+askadskii.utils.dataset package
+===============================
+
+.. automodule:: askadskii.utils.dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
