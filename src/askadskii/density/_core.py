@@ -181,7 +181,7 @@ def estimate_vdw_volume(
             elif use_estimated_params:
                 _logger.warning(f"{_key_bond} is estiamted.")
                 distance = sum(
-                    map_radii_coval[_symbol][
+                    map_radii_coval[_symbol.capitalize()][
                         f"{bond.GetBondTypeAsDouble():.1f}"
                     ]
                     for _symbol in (symbol, symbol_other)
